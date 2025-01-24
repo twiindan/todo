@@ -2,6 +2,7 @@ import sys
 
 import jwt
 from fastapi import Depends, HTTPException, APIRouter, Request, Response
+from jinja2 import pass_context
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from typing import Optional
@@ -40,6 +41,19 @@ bcrypt_context = CryptContext(schemes=['bcrypt'], deprecated='auto')
 models.Base.metadata.create_all(bind=engine)
 
 templates = Jinja2Templates(directory='templates')
+
+
+@pass_context
+def https_url_for(context: dict, name: str, **path_params: Any) -> str:
+    """
+    always convert http to https
+    """
+    request = context["request"]
+    http_url = request.url_for(name, **path_params)
+    return str(http_url).replace("http", "https", 1)
+
+
+templates.env.globals["url_for"] = https_url_for
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
