@@ -15,7 +15,6 @@ import models
 from database import engine, SessionLocal
 from models import Users
 from datetime import datetime, timedelta
-import time
 
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -177,7 +176,10 @@ async def auth_page(request: Request):
     user = await get_current_user(request)
     if user is not None:
         return RedirectResponse(url='/', status_code=status.HTTP_302_FOUND)
-    return templates.TemplateResponse('user/login.html', {'request': request})
+    return templates.TemplateResponse('user/login.html', {
+        'request': request,
+        'url_for': https_url_for
+    })
 
 
 @router.post('/', response_class=HTMLResponse)
