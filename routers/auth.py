@@ -3,6 +3,7 @@ import sys
 import jwt
 from fastapi import Depends, HTTPException, APIRouter, Request, Response
 from jinja2 import pass_context
+from jwt import PyJWTError
 from passlib.context import CryptContext
 from pydantic import BaseModel
 from typing import Optional, Any
@@ -139,7 +140,7 @@ async def get_current_user(request: Request):
             print("us")
             raise get_user_exception()
         return {'username': username, 'id': user_id}
-    except JWTError:
+    except PyJWTError:
         raise get_user_exception()
 
 
@@ -184,7 +185,8 @@ async def login(request: Request, db: Session = Depends(get_db)):
     try:
         form = LoginForm(request)
         await form.create_oauth_form()
-        response = RedirectResponse(url='/', status_code=status.HTTP_302_FOUND)
+        https_url = request.url_for('/')
+        response = RedirectResponse(url=https_url.replace('http://', 'https://'), status_code=status.HTTP_302_FOUND)
         validate_user_cookie = await login_for_access_token(response=response, form_data=form, db=db)
 
         if not validate_user_cookie:
@@ -222,7 +224,6 @@ async def create_new_user(request: Request, db: Session = Depends(get_db)):
     user.first_name = form.firstname
     user.last_name = form.lastname
     user.hashed_password = get_password_hash(form.password)
-    # user.phone_number = form.phonenumber
     user.is_active = True
 
     db.add(user)
