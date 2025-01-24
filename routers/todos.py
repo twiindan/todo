@@ -1,17 +1,17 @@
 import sys
-
 from typing import Optional
-from fastapi import Depends, HTTPException, APIRouter, status, Request, Form
+
+from fastapi import Depends, APIRouter, status, Request, Form
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from jinja2 import pass_context
 from pydantic import BaseModel, Field
+from sqlalchemy.orm import Session
+from starlette.responses import RedirectResponse
 
 import models
 from database import engine, SessionLocal
-from sqlalchemy.orm import Session
-from routers.auth import get_current_user, get_user_exception
-
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from starlette.responses import RedirectResponse
+from routers.auth import get_current_user
 
 sys.path.append('..')
 
@@ -27,6 +27,19 @@ router = APIRouter(
 models.Base.metadata.create_all(bind=engine)
 
 templates = Jinja2Templates(directory='templates')
+
+
+@pass_context
+def https_url_for(context: dict, name: str, **path_params: Any) -> str:
+    """
+    always convert http to https
+    """
+    request = context["request"]
+    http_url = request.url_for(name, **path_params)
+    return str(http_url).replace("http", "https", 1)
+
+
+templates.env.globals["url_for"] = https_url_for
 
 
 def get_db():
