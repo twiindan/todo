@@ -36,7 +36,7 @@ def https_url_for(context: dict, name: str, **path_params: Any) -> str:
     """
     request = context["request"]
     http_url = request.url_for(name, **path_params)
-    return str(http_url).replace("http", "https", 1)
+    return str(http_url).replace("http:", "https:", 1)
 
 
 templates.env.globals["url_for"] = https_url_for

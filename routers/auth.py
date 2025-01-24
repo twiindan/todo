@@ -50,7 +50,7 @@ def https_url_for(context: dict, name: str, **path_params: Any) -> str:
     """
     request = context["request"]
     http_url = request.url_for(name, **path_params)
-    return str(http_url).replace("http", "https", 1)
+    return str(http_url).replace("http:", "https:", 1)
 
 
 templates.env.globals["url_for"] = https_url_for
@@ -187,8 +187,7 @@ async def login(request: Request, db: Session = Depends(get_db)):
     try:
         form = LoginForm(request)
         await form.create_oauth_form()
-        https_url = request.url_for('/')
-        response = RedirectResponse(url=https_url.replace('http://', 'https://'), status_code=status.HTTP_302_FOUND)
+        response = RedirectResponse(url='/', status_code=status.HTTP_302_FOUND)
         validate_user_cookie = await login_for_access_token(response=response, form_data=form, db=db)
 
         if not validate_user_cookie:
